@@ -63,7 +63,7 @@ select loop, "Loop might not terminate due to this $@.", assign, "assignment"
 ```
 
 因为这篇不是介绍codeql的文章，所以暂时省略用法、原理什么的介绍，再说了，我也不会。。。
-把以上的代码保存在了codeql-repo的相关目录下，可能没有vscode的话，会有一些繁琐的事情要做，但是不在意。。。就先这样保存吧
+把以上的代码保存在了codeql-repo的相关目录下，可能没有vscode的话，会有一些繁琐的事情要做，但是不用在意。。。就先这样保存吧
 ql文件前边的注释是[metadata](https://codeql.github.com/docs/writing-codeql-queries/metadata-for-codeql-queries/)，其中有个kind字段，在codeql analyze的时候会被要求，用来表明如何编译与显示查询结果，可以是“problem”或者“path-problem”。指定这些就很麻烦，等下有一个等效的方法
 ql中查询类似循环赋值语句，from中选择所有循环、变量以及赋值操作，where中设置条件，筛选循环condition中出现并且body中被赋值的loop，结果片段如下
 
@@ -261,7 +261,7 @@ static errno_t pktmnglr_ipfilter_input(void *cookie, mbuf_t *data, int offset, u
 热乎的[poc](https://github.com/Semmle/SecurityExploits/blob/master/apple/darwin-xnu/packet_mangler_CVE-2017-13904/cve-2017-13904-poc.c)，这个semmle的仓库里都是CodeQL的手下败将  
 
 CVE-2017-13904是一个无限循环，在while语句这个片段中，当tcp_optlen不为零的时候一直处理下去，其中有两个自减，以及两个重新赋值，有问题的便是这重新赋值。else if中涉及的都是tcp_opt_buf得值，这个值都是通过mbuf_copydata，把data中接收到的数据包，指定offset与length，复制到tcp_opt_buf，这个过程没什么检查，因此攻击者完全可控。else if语句中判断tcp_opt_buf[i]的值来操作tcp_opt_buf[i+1]，如果此时tcp_opt_buf[i+1]为零，那么tcp_optlen与i就都不会有变化，那么就会无限循环了。。。  
-这个洞这么明显的么？只是漏洞代码所在的功能应该怎么启动，文章最开始说用`netstat | grep packet-mangler`来检测，但是11.1什么都没有出来。不过文章最后还是给了浮现方法，但是在11.1上还是不行。。。  
+这个洞这么明显的么？只是漏洞代码所在的功能应该怎么启动，文章最开始说用`netstat | grep packet-mangler`来检测，但是11.1什么都没有出来。不过文章最后还是给了复现方法，但是在11.1上还是不行。。。  
 
 ```bash
 curl https://opensource.apple.com/source/network_cmds/network_cmds-543/pktmnglr/packet_mangler.c -O
@@ -275,9 +275,9 @@ cc packet_mangler.c
 sudo ./a.out -p tcp -M 1
 ```
 
-圆规正传，再来看一下缓冲区溢出的问题，刚提到了mbuf_copydata，其中的长度orig_tcp_optlen就是tcp_optlen，而这个值通过`(tcp.th_off << 2)-sizeof(struct tcphdr);`获取，而tcp这个数据就是从data中得到的`mbuf_copydata(*data, offset, sizeof(tcp), &tcp);`。  
+言归正传，再来看一下缓冲区溢出的问题，刚提到了mbuf_copydata，其中的长度orig_tcp_optlen就是tcp_optlen，而这个值通过`(tcp.th_off << 2)-sizeof(struct tcphdr);`获取，而tcp这个数据就是从data中得到的`mbuf_copydata(*data, offset, sizeof(tcp), &tcp);`。  
 如果tcp.th_off为零，那么orig_tcp_optlen就是负值，此时再mbuf_copydata获取tcp_opt_buf的时候，负值整形溢出变为可能很大的正数，便会溢出。其实mbuf_copydata在kpi_mbuf.c中实现的代码有`count = m->m_len - off > len ? len : m->m_len - off;`判断复制的长度，可以越界写，但是有那么大长度覆盖返回地址么？而且mbuf_copydata应该是正常返回，而不是文章中说的异常返回吧？  
-两个漏洞的根本原因在于用户可控的数据，fuzz的话感觉比较容易的测到。CodeQL多用于漏洞变种检测，根据漏洞成因，形成检测规则，在代码长裤中进行查找相似的片段。  
+两个漏洞的根本原因在于用户可控的数据，fuzz的话感觉比较容易的测到。CodeQL多用于漏洞变种检测，根据漏洞成因，形成检测规则，在代码库中查找相似的片段。  
 
 ```ql
 import cpp
@@ -777,6 +777,14 @@ sixxlowpan_uncompress(struct frame802154 *ieee02154hdr, u_int8_t *payload)
 而且最近状态不对，瞎忙，导致思考的时间很少  
 酱，boring
 
+Update 0x01: 关于代码相似性检测    
+2021-02-23  
+
+代码相似性的问题已经被研究很久了，比如科恩的binary-ai等面向二进制的  
+最近看到的是Usenix 2020中的[FICS](https://github.com/RiS3-Lab/FICS)，内心其实觉得效果不会特别好，倒是可以用用其中说到的技术与工具。比如其中用了一个基于LLVM的切片工具[dg
+(https://github.com/mchalupa/dg)，目前只有二百多个star，说实话这个工具自从我star后，一直没有真正的尝试着使用过  
+恰巧这几天到了阿里猎户实验室他们在NDSS2021上的论文，其中使用clang把XNU的中的AST dump后，形成新的图  
+所以现在觉得在源码方面的工作可以以XNU为目标
 
 [Ref]
 
