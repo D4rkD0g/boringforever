@@ -777,12 +777,14 @@ sixxlowpan_uncompress(struct frame802154 *ieee02154hdr, u_int8_t *payload)
 而且最近状态不对，瞎忙，导致思考的时间很少  
 酱，boring
 
+## 0x05 Updates 
+
 Update 0x01: 关于代码相似性检测    
 2021-02-23  
 
 代码相似性的问题已经被研究很久了，比如科恩的binary-ai等面向二进制的  
 最近看到的是Usenix 2020中的[FICS](https://github.com/RiS3-Lab/FICS)，内心其实觉得效果不会特别好，倒是可以用用其中说到的技术与工具。比如其中用了一个基于LLVM的切片工具[dg
-(https://github.com/mchalupa/dg)，目前只有二百多个star，说实话这个工具自从我star后，一直没有真正的尝试着使用过  
+](https://github.com/mchalupa/dg)，目前只有二百多个star，说实话这个工具自从我star后，一直没有真正的尝试着使用过  
 恰巧这几天到了阿里猎户实验室他们在NDSS2021上的论文，其中使用clang把XNU的中的AST dump后，形成新的图  
 所以现在觉得在源码方面的工作可以以XNU为目标
 
