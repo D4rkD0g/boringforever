@@ -1,4 +1,4 @@
-真的时不同的IR各有各的不同  
+真的是不同的IR各有各的不同  
 一直纠结用哪种IR，既要考虑表示的信息准确，又要考虑相关生态完善，比如有一些直接能用的上层函数库  
 最终用BNIL是因为，之前头脑一热续费了。不过BNIL中的HLIL还是不错的。。。  
 之前Vector35团队在bluehat 2019中也有一个《Modern Binary Analysis with ILs》的议题  
