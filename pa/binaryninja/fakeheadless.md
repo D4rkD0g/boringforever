@@ -5,6 +5,21 @@
 印象中还有几篇paper来比较各种IR，比如ASE2017的《Testing Intermediate Representations for binary analysis》等  
 
 穷人买的个人版，没有headless，之前有个[临时解决方案](https://github.com/D4rkD0g/2020_Record/blob/master/2020.05/week01/2020.05.05.md)，但总觉得每次手动reload太麻烦  
+
+---  
+** 2021-03-20 14：35 **  
+官方插件[snippets](https://github.com/Vector35/snippets)才是王道  
+
+```PYTHON
+snippetText = snippetFile.readlines()  #读文件 
+exec("from binaryninja import *", snippetGlobals) #然后执行
+exec(code, snippetGlobals)
+```
+
+哎，我就是个垃圾。。。  
+---  
+
+
 于是，最近新加入了watchdog机制，用了python的这个库，监控目录中的文件是否被修改，修改的话，直接reload，然后log看输出结果  
 
 前几天没有加线程，导致shell一直“卡”住，不过不能用multiprocessing库，会报错  
