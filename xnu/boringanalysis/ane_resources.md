@@ -83,6 +83,11 @@ sudo nvram boot-args="amfi_get_out_of_my_way=1"
 就是吴潍浠发的相关资料[ANETOOLS](https://github.com/antgroup-arclab/ANETools)  
 感觉和tinygrad中的差不多
 
+大佬在BH ASIA2021上的[apple-neural-engine-internal-from-ml-algorithm-to-hw-registers](https://www.blackhat.com/asia-21/briefings/schedule/#apple-neural-engine-internal-from-ml-algorithm-to-hw-registers-22039)发出来了  
+介绍了从FaceID到ANE的“动机”，以及ANE相关的流程。最后发现了coremlcompiler的三个越界读以及内核abort
+
+（之前我也fuzz过coremlcompiler，但是mlmodel是protobuf格式，一般随机变异很难满足合法性，可以从头训练或者手动修改部分关键数据，再或者根据proto文件生成解析脚本。hwx这个之前只是fuzz了个空指针）
+
 ## 0x04 漏洞介绍与漏洞
 
 见ANE_exp与anexploit
