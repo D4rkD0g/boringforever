@@ -1,0 +1,142 @@
+2021/5/23
+#thought# 
+最近发现一个计算密集程序的一批除零/空指针解引用的问题
+自古印象肯定是rce、lpe最牛，但漏洞一定是和场景相关的、安全性也要考虑用户的接受程度。现在人们做安全概念，多多少少有点耍流氓的性质了
+除零的背后是什么？
+技法上可能是一套数据流跟踪，根源上可能是一批参数没校验，背景上可能是程序员水平有限；受控的参数传到被除数是除零，传到数组下标就是越界。而且越界读写就一定品相好？就具有天生的优越感？
+有一部分人是“道听途说/半吊子”，很容易拿一些陈年知识或者自己未验证的听闻说事，比如rust安全，不知道为什么这部分人都会认为找unsafe，比如XSS，不知道为什么这部分人都认为就是弹个框。
+挖洞不就是为了打破常规，一次次的突破边界么？
+
+2021/5/8
+#MacOS# #iOS# #ANE
+今日份的不开森，就像之前看高通DSP一样，也是有人直接就去了会议讲。。。方向都差不多，但是自己就是比人家慢。。。菜
+https://www.blackhat.com/asia-21/briefings/schedule/index.html#apple-neural-engine-internal-from-ml-algorithm-to-hw-registers-22039
+
+2021/5/1
+#fuzz#
+昨天无聊想给CPython找找洞，查了查H1以及issue，感觉就没几个…
+最开始是翻了翻Modules目录下几个上了年纪的文件…后来忘了怎么的看到
+PyLong_AsUnsignedLongLong函数，就是做类型转换，但是失败就返回-1…如果父函数没有检查返回值的合法性，而直接后续使用，那就可能会存在一些问题…搜了搜发现winreg这个windows的注册表库中就是这种情况…存个负数或者大整数就会把0xffffffff存进去，虽然会有报错信息…
+当然PoC不是Exp，开发者把这个当作behavior的bug
+然后就在纠结这类bug的检测，用LLVM、CodeQL、Joern、grep中的哪个做检测，灵活还是快速衰
+最后，给CPython提安全性问题还是需要慎重，他们对这类问题很严谨的，而且关于valgrand与pymalloc的问题也要事先明白
+关于fuzz的话，项目中自带harness以及安全客中有一篇文章
+https://bugs.python.org/issue43984
+https://www.python.org/dev/security
+CVE-2021-29921 ipaddress对八进制ip解析不合理的问题 https://sick.codes/sick-2021-014/
+
+2021/4/28
+#MacOS#
+MacOS现在也用了dyld_shared_cache，一些脚本，比如DyldExtractor会失败（在11.2以上试过），可能没有localSymbolInfo。然后一般用IDA7.5看单个库，LLDB dump内存之后会提示有些段没了，后来看dyld中有extractor的功能，但是编译一直有问题，主要由于自己环境配置有问题。xcode会提示各种头文件，然后clang有一个ld: symbol(s) not found for architecture x86_64问题，只好看看源码。发现只要调用/usr/lib/dsc_extractor.bundle中的dyld_shared_cache_extract_dylibs_progress就可以。。。。。。
+```c
+//SDKROOT=`xcrun --sdk macosx --show-sdk-path` /usr/bin/clang++ -o newde newde.cpp
+#include <stdio.h>
+#include <stddef.h>
+#include <dlfcn.h>
+
+typedef int (*extractor_proc)(const char* shared_cache_file_path, const char* extraction_root_path,
+               void (^progress)(unsigned current, unsigned total));
+
+int main(int argc, const char* argv[])
+{
+  if ( argc != 3 ) {
+    fprintf(stderr, "usage: dsc_extractor <path-to-cache-file> <path-to-device-dir>\n");
+    return 1;
+  }
+
+  //void* handle = dlopen("/Volumes/my/src/dyld/build/Debug/dsc_extractor.bundle", RTLD_LAZY);
+  //void* handle = dlopen("/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/usr/lib/dsc_extractor.bundle", RTLD_LAZY);
+  void* handle = dlopen("/usr/lib/dsc_extractor.bundle", RTLD_LAZY);
+  if ( handle == NULL ) {
+    fprintf(stderr, "dsc_extractor.bundle could not be loaded\n");
+    return 1;
+  }
+
+  extractor_proc proc = (extractor_proc)dlsym(handle, "dyld_shared_cache_extract_dylibs_progress");
+  if ( proc == NULL ) {
+    fprintf(stderr, "dsc_extractor.bundle did not have dyld_shared_cache_extract_dylibs_progress symbol\n");
+    return 1;
+  }
+
+  int result = (*proc)(argv[1], argv[2], ^(unsigned c, unsigned total) { printf("%d/%d\n", c, total); } );
+  fprintf(stderr, "dyld_shared_cache_extract_dylibs_progress() => %d\n", result);
+  return 0;
+}
+```
+
+2021/4/21
+#debug#
+最早用OD，单步向前，不能后退，跑飞了就重新加载；后来GDB 7 有了reverse-step，可以随时后退，好用的不得了；记得哪年的看雪峰会，阿里讲的自动逆向机器人，心里暗叹NB的不得了，直到后来才知道有PANDA这个框架；再想想WinDBG也有了TTD；还有rr；看George Hotz在2016年QIRA的视频，觉得大佬就是大佬；今年才看到[TETRANE](https://www.tetrane.com/)的几个demo，更是觉得上天了；这两天lighthouse/lucid的作者开源了tenet。
+个人觉得，步骤基本一样，trace获取必要数据，然后TUI/GUI展示。trace可以用pin/qemu，这部分的发展在于精确以及耗费时长；展示这部分，或者说数据使用这部分，可能是以后的重点研究方向，如何让人机交互便捷，如何最大化的利用收集的数据，会成为核心竞争。
+以后还可以联动root cause分析、污点分析等。
+一直想做一个面向源码的，感觉IDE或者现阶段的TTD由一维变为了二维，但还不是三维，还有能不能“挂图作战”😂
+
+2021/4/8
+#JSC# #CodeQL#
+当JSC遇到CodeQL，讲的是真奶妈级
+[The Mysterious Realm of JavaScriptCore](https://www.cyberark.com/resources/threat-research-blog/the-mysterious-realm-of-javascriptcore)
+
+2021/3/29
+#rust# 
+[Double free in Vec::from_iter specialization when](https://github.com/rust-lang/rust/issues/83618)
+
+2021/3/14
+#web# 
+苹果的web洞这么多啊
+[Apple web server notifications](https://support.apple.com/en-in/HT201536)
+
+2021/3/13
+#iOS# 
+呜呜呜
+[Analysis and exploitation of the iOS kernel vulner..](https://www.synacktiv.com/publications/analysis-and-exploitation-of-the-ios-kernel-vulnerability-cve-2021-1782)
+
+2021/3/7
+#fuzz# 
+[AFL++](https://t.co/SAne15rVpy?amp=1&s=09)才是从入门到精通的首选
+
+2021/3/4
+#iOS# 
+上回书说到，淘了个二手iPhone
+现在目标是DY，App Store安装一下，第一步需要砸壳，这次试试CrackerXI，可以直接选择目标App（在ps中搜了好久，最后才发现竟然叫Aweme.app）
+然后把ipa拖回电脑就可以了
+otool -l DY | grep crypt，cryptid 1表示有壳
+
+2021/3/2
+#iOS# #jailbreak# 
+本以为checkra1n只不支持A14😂淘了个二手iPhone SE2，傻眼了
+只好试试u0
+不过现在越狱怎么这么花里胡哨的，还要mac安装altstore，还要mail插件
+之前直接xcode编译或者Impactor，checkra1n的一键越狱就是好用
+
+2021/3/2
+#web# 
+判断当前是否是浏览器的无痕浏览模式
+看代码的话，可以发现原理是：快捷键触发浏览器来恢复页面，正常恢复的化则不在；不能正常恢复，那么就是无痕浏览
+之前还看到过，判断当前浏览器是否开起了burp代理，原理是访问burp自启的服务，记得是判断icon？
+https://renwax23.github.io/X/incognito2.html
+[Tech Tip: Remember Ctrl-Shift-T to Get Your Tabs B](https://www.weston-tech.com/blog/tech-tip-remember-ctrl-shift-t-to-get-your-tabs-back/)
+[Page Visibility API 教程 - 阮一峰的网络日志](http://www.ruanyifeng.com/blog/2018/10/page_visibility_api.html)
+
+2021/3/1
+#rust# 
+[这一刊](https://rustmagazine.github.io/rust_magazine_2021/chapter_2/toc.html)砍掉了rust安全相关的内容
+我从19年就开始断断续续的学习rust，因为没有实现的目标，也就没有学会多少东西；因为对现代C++不了解，也就不清楚除了“安全”方面，两者到底有什么不同…
+当时CTF中也慢慢开始有了rust相关的pwn和reverse，国外国内的编程书籍也越来越多
+之前想写fuzzer，但fuzzer的目的肯定是有什么想法，而我又没什么想法，有的话为什么不直接改AFL++？…所以fuzzer 没写成，rust没学会…不过看了看Angora
+说到rust安全，其实已经有几个CVE了，不过人们提到rust安全就会说unsafe，这是很无聊的，也是片面的…记得去年有人专门发了rust安全的paper
+个人觉得可以用于符号执行，毕竟Python写的angr肯定慢…目前有基于LLVM IR的haybale，基于Falcon IL的finch
+fuzzer+se，希望今年自己能写个demo吧
+最后，针对rust的fuzz工具，目前也有很多了，不过好奇的是，里边的插桩是怎么做的？
+就当挖个坑吧，希望今年在rust上有点东西
+
+2021/2/28
+#fuzz# #web# 
+借助radamsa，用差分的方式，检测kibana对url的解析
+Orange之前的SSRF，也可以用fuzz的方式做检测吧
+[SSRF: Bypassing hostname restrictions with fuzzing](https://blog.deesee.xyz/fuzzing/security/2021/02/26/ssrf-bypassing-hostname-restrictions-fuzzing.html)
+
+2021/2/27
+#AI#
+[AI框架历史八卦文](https://mp.weixin.qq.com/s?__biz=MzU1OTEwNDkwNw==&mid=2247486998&idx=1&sn=78d77fc48eb31b99a415d6ca42412d03&chksm=fc1d18f2cb6a91e46c45ee309a90e43f04183903ad767d09850727169617ff6975a1b06cf3bf&mpshare=1&srcid=0226c418ln7rwoEj7PhPTAYw&sharer_sharetime=1614431849364&sharer_shareid=f57d1ee01f277ba6a7fb369b7dea5701&from=timeline&scene=2&subscene=1&clicktime=1614432338&enterid=1614432338&ascene=2&devicetype=android-29&version=28000159&nettype=WIFI&abtest_cookie=AAACAA%3D%3D&lang=zh_CN&exportkey=AWC0AGXZ7i%2FqGibXOKJOZSw%3D&pass_ticket=ihl%2BUSq61BCFymxbWhrGD1ZyrPlYK7%2B7y59Ew49%2FaentcEIXzGkRkw%2F2rR1V7CT5&wx_header=1)
+
+
