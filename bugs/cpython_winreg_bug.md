@@ -2,7 +2,7 @@
 
 
 The library winreg[1] can be used to access registry on windows.  
->reg.SetValueEx(key, 'X', 0, reg.REG_DWORD, -1337)  
+reg.SetValueEx(key, 'X', 0, reg.REG_DWORD, -1337)  
 `SetValueEx` could store data in the value field of an open registry key, 
 
 In the source file of "PC/winreg.c", `Py2Reg`is called first
@@ -91,15 +91,15 @@ Get Subkey:  4294967295
 
 the return value should be checked CWE252
 
-https://ycdxsb.cn/3f2f6cef.html
-https://cwe.mitre.org/data/definitions/252.html
+https://ycdxsb.cn/3f2f6cef.html  
+https://cwe.mitre.org/data/definitions/252.html  
 
-可以从https://codeql.github.com/codeql-query-help/codeql-cwe-coverage/查看codeql的cwe覆盖情况
+可以从https://codeql.github.com/codeql-query-help/codeql-cwe-coverage/查看codeql的cwe覆盖情况  
 然后找codel源码
 
-https://github.com/github/codeql/blob/ef0ea247c40da805efa427a37f5213457d18f714/cpp/ql/src/Likely%20Bugs/InconsistentCallOnResult.ql
-https://github.com/github/codeql/blob/ef0ea247c40da805efa427a37f5213457d18f714/cpp/ql/src/Critical/ReturnValueIgnored.ql
-https://github.com/github/codeql/blob/ef0ea247c40da805efa427a37f5213457d18f714/cpp/ql/src/Microsoft/IgnoreReturnValueSAL.ql
+https://github.com/github/codeql/blob/ef0ea247c40da805efa427a37f5213457d18f714/cpp/ql/src/Likely%20Bugs/InconsistentCallOnResult.ql  
+https://github.com/github/codeql/blob/ef0ea247c40da805efa427a37f5213457d18f714/cpp/ql/src/Critical/ReturnValueIgnored.ql  
+https://github.com/github/codeql/blob/ef0ea247c40da805efa427a37f5213457d18f714/cpp/ql/src/Microsoft/IgnoreReturnValueSAL.ql  
 
 
 [1] https://docs.python.org/3.9/library/winreg.html#winreg.SetValueEx
