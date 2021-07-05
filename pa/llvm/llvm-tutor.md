@@ -2,18 +2,19 @@
 
 最近想接着搞搞LLVM IR以及程序分析，找了个教程[llvm-tutor](https://github.com/banach-space/llvm-tutor)，包含以下内容
 
-HelloWorld			visits all functions and prints their names 	Analysis
-OpcodeCounter		prints a summary of LLVM IR opcodes in the input module 	Analysis
-InjectFuncCall 		instruments the input module by inserting calls to printf 	Transformation
-StaticCallCounter 	counts direct function calls at compile-time (static analysis) 	Analysis
-DynamicCallCounter 	counts direct function calls at run-time (dynamic analysis) 	Transformation
-MBASub 				obfuscate integer sub instructions 	Transformation
-MBAAdd 				obfuscate 8-bit integer add instructions 	Transformation
-FindFCmpEq 			finds floating-point equality comparisons 	Analysis
-ConvertFCmpEq 		converts direct floating-point equality comparisons to difference comparisons 	Transformation
-RIV 				finds reachable integer values for each basic block 	Analysis
-DuplicateBB 		duplicates basic blocks, requires RIV analysis results 	CFG
-MergeBB 			merges duplicated basic blocks 	CFG
+
+HelloWorld			visits all functions and prints their names 	Analysis  
+OpcodeCounter		prints a summary of LLVM IR opcodes in the input module 	Analysis  
+InjectFuncCall 		instruments the input module by inserting calls to printf 	Transformation  
+StaticCallCounter 	counts direct function calls at compile-time (static analysis) 	Analysis  
+DynamicCallCounter 	counts direct function calls at run-time (dynamic analysis) 	Transformation  
+MBASub 				obfuscate integer sub instructions 	Transformation  
+MBAAdd 				obfuscate 8-bit integer add instructions 	Transformation  
+FindFCmpEq 			finds floating-point equality comparisons 	Analysis  
+ConvertFCmpEq 		converts direct floating-point equality comparisons to difference comparisons 	Transformation  
+RIV 				finds reachable integer values for each basic block 	Analysis  
+DuplicateBB 		duplicates basic blocks, requires RIV analysis results 	CFG  
+MergeBB 			merges duplicated basic blocks 	CFG  
 
 给出了这些pass。可以在根目录下执行cmake，但是要求的LLVM12，改改CMakeList就好
 
