@@ -1,6 +1,8 @@
 主要针对微软的这套[AI-System](https://microsoft.github.io/AI-System/)的第三课和第九课，做一下笔记以及思考记录  
 （不得不说这教程有查漏补缺的作用，之前的大部分资料来源于MindSpore、MegEngine、Oneflow等架构类的文章，多多少少的能够了解一个大概，但是并没有整体特别健全的框架）
 
+##0x01 基本概念
+
 AI框架的[八卦史](https://mp.weixin.qq.com/s/PQLQ0nN0fM4PPkhEUXfOmw)  
 现在的framework主打灵活和高效。灵活主要是像Python这种前端语言的支持以及动态图这种动态调试。记得是说在Theano之前，并没有Python这种前端？  
 
@@ -12,10 +14,10 @@ Operator的概念更类似于接口，真正的实现叫做kernel，针对不同
 由于NN中最基本的还有求导，所以自动微分or自动求导就是标配了。类似于换元法？链式求导。  
 
 
-【自动求导需要补一下】
+#### 2.【自动求导需要补一下】
 https://sangyx.com/1759
 
-静态图与动态图的对比
+#### 3. 静态图与动态图的对比
 
 ```
 静态：
@@ -35,6 +37,7 @@ https://sangyx.com/1759
 
 现在的框架基本都支持动静转化，比如pytorch的tracing与scripting？
 
+```
  efficiency
      ^
      |	Layer-based: Caffe
@@ -46,8 +49,18 @@ https://sangyx.com/1759
      |	Python-like：Numpy
      v
 flexibility
+```
 
 PPT有说新一代AI编译器或者AI语言，就是DSC和DSL了  
 
-图优化、内存优化、kernel优化、调度优化
+## 0x02 编译优化
+
+课程里说了四种优化：图优化、内存优化、kernel优化、调度优化。
+
+#### 1. 图优化
+
+针对计算图进行：表达式化简（等价替换）、CSE、常数折叠（可能需要消耗大量内存）、operator batch（GEMM自动融合实现并行）、算子融合、子图替换。  
+这个子图替换有点东西
+
+
 
