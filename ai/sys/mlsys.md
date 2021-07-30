@@ -1,7 +1,7 @@
 主要针对微软的这套[AI-System](https://microsoft.github.io/AI-System/)，做一下笔记以及思考记录  
 （不得不说这教程有查漏补缺的作用，之前的大部分资料来源于MindSpore、MegEngine、Oneflow等架构类的文章，多多少少的能够了解一个大概，但是并没有整体特别健全的框架）
 
-##0x01 基本概念(第三课)
+## 0x01 基本概念(第三课)
 
 AI框架的[八卦史](https://mp.weixin.qq.com/s/PQLQ0nN0fM4PPkhEUXfOmw)  
 现在的framework主打灵活和高效。灵活主要是像Python这种前端语言的支持以及动态图这种动态调试。记得是说在Theano之前，并没有Python这种前端？  
