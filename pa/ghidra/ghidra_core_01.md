@@ -127,47 +127,20 @@ step5
 step6-14
 ```
 
-1. step0 指定入口
+0. step0 指定入口
+用户指定函数的起始地址
   
-  The user specifies a starting address for a particular function.
+1. step1 生成原始的P-code
+SLEIGH：P-code的生成引擎。它基于处理器规范文件，把机器指令映射为p-code操作符。
+这个步骤有控制流的操作（
+函数范围确定时，会检查PIC结构。如果call的目标依旧在当前函数内部，这个call就会被改成jump  
+在BB生成前，被标记为内联的函数此时被填充。内联函数的p-code单独生成
 
-  \subsection step1 Generate Raw P-code
+2. step2 生成BB与CFG
+BB基于p-code（而非机器指令）生成，CFG基于BB生成
+ Control flow is normalized so that there is always a unique start block with no other blocks falling into it.  In the case of subroutines which have branches back to their very first machine instruction, this requires the creation of an empty placeholder start block that flows immediately into the block containing the p-code for the first instruction.
 
-  The p-code generation engine is called \b SLEIGH. Based on a
-  processor specification file, it maps binary encoded
-  machine instructions to sequences of p-code operations.
-  P-code operations are generated for a single machine
-  instruction at a specific address.  The control flow
-  through these p-code operations is followed to determine
-  if control falls through, or if there are jumps or calls.
-  A work list of new instruction addresses is kept and is
-  continually revisited until there are no new instructions.
-  After the control flow is traced, additional changes may
-  be made to the p-code.
-
-    -# PIC constructions are checked for, now that the
-       extent of the function is known.  If a call is to a
-       location that is still within the function, the call
-       is changed to a jump.
-    -# Functions which are marked as inlined are filled in
-       at this point, before basic blocks are generated.
-       P-code for the inlined function is generated
-       separately and control flow is carefully set up to
-       link it in properly.
-
-   \subsection step2 Generate Basic Blocks and the CFG
-
-   Basic blocks are generated on the p-code instructions
-   (\e not the machine instructions) and a control flow graph
-   of these basic blocks is generated.  Control flow is
-   normalized so that there is always a unique start block
-   with no other blocks falling into it.  In the case of
-   subroutines which have branches back to their very first
-   machine instruction, this requires the creation of an
-   empty placeholder start block that flows immediately into
-   the block containing the p-code for the first instruction.
-
-   \subsection step3 Inspect Sub-functions
+3. step3 Inspect Sub-functions
 
       -# Addresses of direct calls are looked up in the
          database and any parameter information is
@@ -180,7 +153,7 @@ step6-14
       -# Any global or default prototype recovered at this
          point can be overridden locally.
 
-   \subsection step4 Adjust/Annotate P-code
+4. step4 调节/标记P-code
 
      -# The context database is searched for known values of
         memory locations coming into the function.  These
@@ -217,19 +190,13 @@ step6-14
         value. The return value is considered an input to
         the \b RETURN instruction.
 
-   \subsection step5 The Main Simplification Loop
+5. step5 大简化循环
 
-     \subsubsection step5a Generate SSA Form
+     step5a SSA Form
+     基于支配树，采用标准的phi-node设置算法。def-use之间标准的重命名算法（别名分析？）
+     函数内栈上的引用不能完全解析，直到 
 
-     This is very similar to forward engineering
-     algorithms. It uses a fairly standard phi-node
-     placement algorithm based on the control flow dominator
-     tree and the so-called dominance frontier.  A standard
-     renaming algorithm is used for the final linking of
-     variable defs and uses.  The decompiler has to take
-     into account partially overlapping variables and guard
-     against various aliasing situations, which are
-     generally more explicit to a compiler.  The decompiler
+     The decompiler
      SSA algorithm also works incrementally. Many of the
      stack references in a function cannot be fully resolved
      until the main term rewriting pass has been performed
@@ -247,7 +214,7 @@ step6-14
      from the input by some indirect (frequently unknown)
      effect.
 
-     \subsubsection step5b Eliminate Dead Code
+     step5b 删除死代码
 
      Dead code elimination is essential to the decompiler
      because a large percentage of machine instructions have
@@ -264,7 +231,7 @@ step6-14
      to appropriately truncate variables in these
      situations.
 
-     \subsubsection step5c Propagate Local Types
+     step5c Propagate Local Types
 
      The decompiler has to infer high-level type information
      about the variables it analyzes, as this kind of
@@ -278,10 +245,10 @@ step6-14
      through the syntax trees so that related types of other
      variables can be determined.
 
-     \subsubsection step5d Perform Term Rewriting
+     step5d Perform Term Rewriting
 
-     The bulk of the interesting simplifications happen in
-     this section.  Following Formal Methods style term
+     这部分很有趣？
+     Following Formal Methods style term
      rewriting, a long list of rules are applied to the
      syntax tree. Each rule matches some potential
      configuration in a portion of the syntax tree, and
@@ -302,34 +269,18 @@ step6-14
      multiplication and division optimizations, commuting
      operators, ....
 
-     \subsubsection step5e Adjust Control Flow Graph
+     step5e 调节CFG
 
-     The decompiler can recognize
-        - unreachable code
-        - unused branches
-        - empty basic blocks
-        - redundant predicates
-        - ...
-     
-     It will remove branches or blocks in order to
-     simplify the control flow.
+     反编译器能够识别：不可达代码、没有到的分支、空BB、冗余谓词...  
+     会去除无用的分支以及BB
 
-     \subsubsection step5f Recover Control Flow Structure
+     step5f 恢复控制流结构
 
-     The decompiler recovers higher-level control flow
-     objects like loops, \b if/\b else blocks, and \b switch
-     statements.  The entire control flow of the function is
-     built up hierarchically with these objects, allowing it
-     to be expressed naturally in the final output with the
-     standard control flow constructs of the high-level
-     language.  The decompiler recognizes common high-level
-     unstructured control flow idioms, like \e break, and can
-     use node-splitting in some situations to undo compiler
-     flow optimizations that prevent a structured
-     representation.
+     反编译器会恢复高层次的控制流对象，如loops、if-else、switch。函数的整个控制流由这些对象构建。反编译器同时识别非结构化的控制流原语，如break，会在某些状态下用node-splitting的方式undo编译器优化
 
-  \subsection step6 Perform Final P-code Transformations
+  step6 Perform Final P-code Transformations
 
+  在大简化循环中，
   During the main simplification loop, many p-code
   operations are normalized in specific ways for the term
   rewriting process that aren't necessarily ideal for the
@@ -340,7 +291,7 @@ step6-14
   phase would convert any remaining additions of this form
   back into a subtraction operation.
 
-  \subsection step7 Exit SSA Form and Merge Low-level Variables (phase 1)
+  step7 Exit SSA Form and Merge Low-level Variables (phase 1)
 
   The static variables of the SSA form need to be merged
   into complete high-level variables.  The first part of
@@ -364,7 +315,7 @@ step6-14
   would propagate another variable too far.  Any variables
   remaining are marked implicit.
 
-  \subsection step9 Merge Low-level Variables (phase 2)
+  step9 Merge Low-level Variables (phase 2)
 
   Even after the initial merging of variables in phase 1,
   there are generally still too many for normal C code.  So
@@ -375,12 +326,11 @@ step6-14
   variables of the same type. Each potential merge is
   subject to register coloring restrictions.
 
-  \subsection step10 Add Type Casts
+  step10 增加类型转换
 
-  Type casts are added to the code so that the final output
-  will be syntactically legal.
+  确保语法合理
 
-  \subsection step11 Establish Function's Prototype
+  step11 构建函数原型
 
   The register/stack locations being used to pass parameters
   into the function are analyzed in terms of the parameter
@@ -388,7 +338,7 @@ step6-14
   can be selected and the prototype can be printed with the
   input variables in the correct order.
 
-  \subsection step12 Select Variable Names
+  step12 Select Variable Names
 
   The high-level variables, which are now in their final
   form, have names assigned based on any information
@@ -396,32 +346,14 @@ step6-14
   table.  If no name can be identified from the database, an
   appropriate name is generated automatically.
 
-  \subsection step13 Do Final Control Flow Structuring
+  step13 最终的控制流结构
 
    -# Order separate components
    -# Order switch cases
    -# Determine which unstructured jumps are breaks
    -# Stick in labels for remaining unstructured jumps
 
-  \subsection step14 Emit Final C Tokens
+  step14 Emit Final C Tokens
 
-  Following the recovered function prototype, the recovered
-  control flow structure, and the recovered expressions, the
-  final C tokens are generated.  Each token is annotated
-  with its syntactic meaning, for later syntax
-  highlighting. And most tokens are also annotated with the
-  address of the machine instruction with which they are
-  most closely associated.  This is the basis for the
-  machine/C code cross highlighting capability.  The tokens
-  are passed through a standard Oppen pretty-printing
-  algorithm to determine the final line breaks and
-  indenting.
-
-
-*/
-
-
-
-
-
-
+  根据恢复的函数原型、控制流结构、表达式，生成最后的伪C tokens  
+  tokens和机器码之间的联系。Oppen pretty-printing算法  
