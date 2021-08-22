@@ -20,7 +20,8 @@ exec "${CODEQL_JAVA_HOME}/bin/java" \
 
 入口com.semmle.cli2.CodeQL，但runMain在cli2.picocli.SubcommandMaker中
 
-构建数据库  
+## 0x01 构建数据库  
+
 `java -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005 --add-modules jdk.unsupported -cp ../tools/codeql.jar "com.semmle.cli2.CodeQL" database create testc --language=cpp '--command=gcc x.c'`
 
 通过执行不同的类
@@ -124,13 +125,14 @@ result = p.execute(); /Users/lambda/codeql/codeqlcli/tools/osx64/preload_tracer 
 
 emmm，感觉到头来还是preload_tracer和extractor这两个二进制，但是extractor是不是可以参考go的开源https://github.com/github/codeql-go
 
-查询
+## 0x02 查询数据库  
 
 `java -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005 --add-modules jdk.unsupported -cp ../tools/codeql.jar "com.semmle.cli2.CodeQL" database run-queries testc /Users/lambda/codeql/codeql-repo/cpp/ql/src/func.ql`
 
 class com.semmle.cli2.execute.ExecuteQueriesCommand
 
+## 0x03 其中的Tensorflow
 
-
+看到了词嵌入，以及加载`.qlmodel`的模型文件，但是工具中显然并没有
 
 
