@@ -7,11 +7,11 @@ ART: 不同于Dalvik每次运行程序，字节码需要转换为机器码(dex2o
 
 ## 0x02 ADB
 
-https://developer.android.com/studio/command-line/adb
-
+[官方说明list](https://developer.android.com/studio/command-line/adb)
 
 #### 1. 列举安装包
 
+```BASH
 ➜  ~ adb shell pm list packages 
 package:com.google.android.networkstack.tethering
 package:com.google.android.carriersetup
@@ -23,9 +23,13 @@ package:com.google.android.ext.services
 package:com.android.internal.display.cutout.emulation.double
 package:asvid.github.io.fridaapp
 package:com.android.providers.telephony
+```
 
 #### 2. 查看包信息  
 
+有组件信息等
+
+```bash
 ➜  ~ adb shell dumpsys package com.google.android.tts
 Activity Resolver Table:
   Non-Data Actions:
@@ -95,9 +99,13 @@ Dexopt state:
   [com.google.android.tts]
     path: /data/app/~~eUXSng0g71JoE-Rr7i1lrw==/com.google.android.tts-i2jnU0XZ7bzFyEKexa9dJA==/base.apk
       arm64: [status=speed-profile] [reason=install-dm]
+```
 
 #### 3. 查看包的数据库信息  
 
+有数据库位置，查询语句等信息  
+
+```bash
 ➜  ~ adb shell dumpsys dbinfo com.android.settings
 
 Connection pool for /data/user_de/0/com.android.settings/databases/homepage_cards.db:
@@ -117,10 +125,13 @@ Connection pool for /data/user_de/0/com.android.settings/databases/homepage_card
 
 Database files in /data/user_de/0/com.android.settings/databases:
   battery_settings.db                        28672b ctime=2020-10-13T11:40:15Z mtime=2020-10-13T11:40:15Z atime=2020-08-21T19:24:46Z
-
+```
 
 #### 4. 查看处于前台的Activity
 
+看起来还有View的层级显示
+
+```bash
 ➜  ~ adb shell dumpsys activity top
 
 TASK 1000:com.android.settings.root id=114 userId=0
@@ -136,13 +147,11 @@ TASK 1000:com.android.settings.root id=114 userId=0
             androidx.coordinatorlayout.widget.CoordinatorLayout{74d23f6 V.ED..... ........ 0,0-1080,1920 #7f0e0444 app:id/settings_homepage_container}
               androidx.core.widget.NestedScrollView{5723f2a VFED..... ........ 0,231-1080,2130 #7f0e02e6 app:id/main_content_scrollable_container}
                 android.widget.LinearLayout{499c1d2 VFE...... .F...... 0,0-1080,4264 #7f0e0264 app:id/homepage_container aid=1073741824}
-
-
-看起来还有View的层级显示
+```
 
 #### 5. 调试  
 
-
+```bash
 255|walleye:/ # am help
 Activity manager (activity) commands:
   help
@@ -158,17 +167,17 @@ Activity manager (activity) commands:
 ➜  ~ adb shell am start-activity -D -N com.termux/.app.TermuxActivity
 Starting: Intent { act=android.intent.action.MAIN cat=[android.intent.category.LAUNCHER] cmp=com.termux/.app.TermuxActivity }
 
+```
 
-<INTENT> specifications include these flags and arguments:
-    [-a <ACTION>] [-d <DATA_URI>] [-t <MIME_TYPE>] [-i <IDENTIFIER>]
-    [-c <CATEGORY> [-c <CATEGORY>] ...]
-    [-n <COMPONENT_NAME>]
+`-n`指定组件名称  
+在Android 11中，用了`-N`会让手机“异常重启”  
 
+#### 6. 其他 
 
-adb shell screencap -p /data/local/tmp/sp.png
+```bash
+adb shell screencap -p /data/local/tmp/sp.png #截图
+adb shell input text "hello" #输入
+getprop #获取系统信息
+```
 
-adb shell input text "hello"
-
-
-getprop
 
