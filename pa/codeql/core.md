@@ -136,3 +136,7 @@ class com.semmle.cli2.execute.ExecuteQueriesCommand
 看到了词嵌入，以及加载`.qlmodel`的模型文件，但是工具中显然并没有
 
 
+2021.12.09 -> v2.7.3 Latest 
+
+> The experimental command-line option --ml-model-path that was introduced to support internal experiments has been removed.
+
