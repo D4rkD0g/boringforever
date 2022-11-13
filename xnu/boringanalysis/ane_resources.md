@@ -88,11 +88,15 @@ sudo nvram boot-args="amfi_get_out_of_my_way=1"
 
 （之前我也fuzz过coremlcompiler，但是mlmodel是protobuf格式，一般随机变异很难满足合法性，可以从头训练或者手动修改部分关键数据，再或者根据proto文件生成解析脚本。hwx这个之前只是fuzz了个空指针）
 
-## 0x04 漏洞介绍与漏洞
+## 0x04 WeightBufs
+
+[WeightBufs](https://github.com/0x36/weightBufs)，眼巴巴的看着大佬们各种产出。不过这次POC的PPT，内容实在太详细了，根据历史规律，现在可能还差一个最后封顶的议题，推测一下，会和AI算子的实现沾边吧，虽然这次也都沾边，Sad。
+
+## 0x05 漏洞介绍与漏洞
 
 见ANE_exp与anexploit
 
-## 0x05 其他
+## 0x06 其他
 
 [iOS-Runtime-Headers](https://github.com/nst/iOS-Runtime-Headers/tree/master/PrivateFrameworks/AppleNeuralEngine.framework)  
 还有一个20多G的dyld_cache i64[文件](https://github.com/everettjf/dyld_shared_cache_ida)  
